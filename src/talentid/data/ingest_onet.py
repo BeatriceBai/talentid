@@ -42,6 +42,20 @@ def parse_month(series: pd.Series) -> pd.Series:
     return pd.to_datetime(series, format="%m/%Y", errors="coerce")
 
 
+def concat_frames(
+    frames: list[pd.DataFrame],
+    columns: list[str] | None = None,
+) -> pd.DataFrame:
+    """Concatenate frames without pandas all-null-column ambiguity."""
+    prepared = [frame.dropna(axis=1, how="all") for frame in frames]
+    result = pd.concat(prepared, ignore_index=True)
+
+    if columns is not None:
+        result = result.reindex(columns=columns)
+
+    return result
+
+
 def stable_software_id(name: str) -> str:
     """Create a deterministic ID for software names without O*NET IDs."""
     normalized = " ".join(name.casefold().split())
@@ -105,8 +119,12 @@ def build_job_titles() -> pd.DataFrame:
             "onet_soc_code": source["O*NET-SOC Code"],
             "job_title": source["Job Title"],
             "title_type": "alternate",
-            "source_detail": source["Source(s)"],
-            "shown_in_my_next_move": pd.NA,
+            "source_detail": source["Source(s)"].astype("string"),
+            "shown_in_my_next_move": pd.Series(
+                pd.NA,
+                index=source.index,
+                dtype="boolean",
+            ),
         }
     )
 
@@ -116,8 +134,12 @@ def build_job_titles() -> pd.DataFrame:
             "onet_soc_code": short_source["O*NET-SOC Code"],
             "job_title": short_source["Short Title"],
             "title_type": "short",
-            "source_detail": short_source["Source(s)"],
-            "shown_in_my_next_move": pd.NA,
+            "source_detail": short_source["Source(s)"].astype("string"),
+            "shown_in_my_next_move": pd.Series(
+                pd.NA,
+                index=short_source.index,
+                dtype="boolean",
+            ),
         }
     )
 
@@ -127,7 +149,11 @@ def build_job_titles() -> pd.DataFrame:
             "onet_soc_code": reported_source["O*NET-SOC Code"],
             "job_title": reported_source["Reported Job Title"],
             "title_type": "reported",
-            "source_detail": pd.NA,
+            "source_detail": pd.Series(
+                pd.NA,
+                index=reported_source.index,
+                dtype="string",
+            ),
             "shown_in_my_next_move": (
                 reported_source["Shown in My Next Move"]
                 .astype("string")
@@ -137,10 +163,7 @@ def build_job_titles() -> pd.DataFrame:
         }
     )
 
-    result = pd.concat(
-        [alternate, short, reported],
-        ignore_index=True,
-    )
+    result = concat_frames([alternate, short, reported])
 
     result["onet_soc_code"] = clean_text(result["onet_soc_code"])
     result["job_title"] = clean_text(result["job_title"])
@@ -221,10 +244,12 @@ def build_rated_skills(
 
     suppressed = (
         data["recommend_suppress"]
+        .fillna("N")
         .astype("string")
         .str.upper()
         .eq("Y")
     )
+
     data = data[~suppressed].copy()
 
     for column in (
@@ -286,8 +311,16 @@ def build_rated_skills(
     result["skill_type"] = skill_type
     result["hot_technology"] = False
     result["in_demand"] = False
-    result["category_element_id"] = pd.NA
-    result["category_name"] = pd.NA
+    result["category_element_id"] = pd.Series(
+        pd.NA,
+        index=result.index,
+        dtype="string",
+    )
+    result["category_name"] = pd.Series(
+        pd.NA,
+        index=result.index,
+        dtype="string",
+    )
 
     return result
 
@@ -315,12 +348,8 @@ def build_software_skills() -> pd.DataFrame:
 
     data["skill_id"] = data["skill_name"].map(stable_software_id)
     data["skill_type"] = "software"
-    data["importance"] = pd.Series(
-        pd.NA, index=data.index, dtype="Float64"
-    )
-    data["level"] = pd.Series(
-        pd.NA, index=data.index, dtype="Float64"
-    )
+    data["importance"] = float("nan")
+    data["level"] = float("nan")
     data["hot_technology"] = (
         data["hot_technology"].astype("string").str.upper().eq("Y")
     )
@@ -363,8 +392,16 @@ def build_skills(
         how="left",
         validate="many_to_one",
     )
-    rated_skills["category_element_id"] = pd.NA
-    rated_skills["category_name"] = pd.NA
+    rated_skills["category_element_id"] = pd.Series(
+        pd.NA,
+        index=rated_skills.index,
+        dtype="string",
+    )
+    rated_skills["category_name"] = pd.Series(
+        pd.NA,
+        index=rated_skills.index,
+        dtype="string",
+    )
 
     software_skills = (
         software.groupby(
@@ -379,7 +416,11 @@ def build_skills(
             category_name=("category_name", join_unique),
         )
     )
-    software_skills["element_id"] = pd.NA
+    software_skills["element_id"] = pd.Series(
+        pd.NA,
+        index=software_skills.index,
+        dtype="string",
+    )
     software_skills["description"] = (
         "Software or technology skill. O*NET categories: "
         + software_skills["category_name"]
@@ -395,9 +436,9 @@ def build_skills(
         "category_name",
     ]
 
-    result = pd.concat(
+    result = concat_frames(
         [rated_skills[columns], software_skills[columns]],
-        ignore_index=True,
+        columns=columns,
     )
 
     return result.sort_values("skill_id").reset_index(drop=True)
@@ -405,6 +446,7 @@ def build_skills(
 
 def validate_tables(
     occupations: pd.DataFrame,
+    job_titles: pd.DataFrame,
     tasks: pd.DataFrame,
     skills: pd.DataFrame,
     relationships: pd.DataFrame,
@@ -419,12 +461,31 @@ def validate_tables(
     if skills["skill_id"].duplicated().any():
         raise ValueError("Duplicate skill IDs found")
 
-    occupation_ids = set(occupations["onet_soc_code"])
-    referenced_ids = set(relationships["onet_soc_code"])
+    if relationships.duplicated(["onet_soc_code", "skill_id"]).any():
+        raise ValueError("Duplicate occupation-skill relationships found")
 
-    unknown = referenced_ids - occupation_ids
-    if unknown:
-        raise ValueError(f"Unknown occupation IDs: {sorted(unknown)[:5]}")
+    occupation_ids = set(occupations["onet_soc_code"])
+    skill_ids = set(skills["skill_id"])
+
+    occupation_references = {
+        "job_titles": set(job_titles["onet_soc_code"]),
+        "tasks": set(tasks["onet_soc_code"]),
+        "occupation_skills": set(relationships["onet_soc_code"]),
+    }
+
+    for table_name, referenced_ids in occupation_references.items():
+        unknown = referenced_ids - occupation_ids
+        if unknown:
+            sample = sorted(unknown)[:5]
+            raise ValueError(
+                f"Unknown occupation IDs in {table_name}: {sample}"
+            )
+
+    unknown_skills = set(relationships["skill_id"]) - skill_ids
+    if unknown_skills:
+        raise ValueError(
+            f"Unknown skill IDs: {sorted(unknown_skills)[:5]}"
+        )
 
 
 def main() -> None:
@@ -433,22 +494,23 @@ def main() -> None:
     job_titles = build_job_titles()
     tasks = build_tasks()
 
-    rated = pd.concat(
-        [
-            build_rated_skills(
-                "Essential Skills.xlsx",
-                "essential",
-            ),
-            build_rated_skills(
-                "Transferable Skills.xlsx",
-                "transferable",
-            ),
-            build_rated_skills(
-                "Knowledge.xlsx",
-                "knowledge",
-            ),
-        ],
-        ignore_index=True,
+    rated_frames = [
+        build_rated_skills(
+            "Essential Skills.xlsx",
+            "essential",
+        ),
+        build_rated_skills(
+            "Transferable Skills.xlsx",
+            "transferable",
+        ),
+        build_rated_skills(
+            "Knowledge.xlsx",
+            "knowledge",
+        ),
+    ]
+    rated = concat_frames(
+        rated_frames,
+        columns=list(rated_frames[0].columns),
     )
 
     software = build_software_skills()
@@ -469,12 +531,12 @@ def main() -> None:
         "category_name",
     ]
 
-    relationships = pd.concat(
+    relationships = concat_frames(
         [
             rated[relationship_columns],
             software[relationship_columns],
         ],
-        ignore_index=True,
+        columns=relationship_columns,
     )
 
     skills = build_skills(rated, software)
@@ -488,6 +550,7 @@ def main() -> None:
 
     validate_tables(
         occupations,
+        job_titles,
         tasks,
         skills,
         relationships,
