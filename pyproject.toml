@@ -6,7 +6,7 @@ readme = "README.md"
 authors = [
     { name = "BeatriceBai", email = "beatrice.datascience@gmail.com" }
 ]
-requires-python = ">=3.10"
+requires-python = ">=3.11,<3.12"
 dependencies = [
     "openpyxl>=3.1.5",
     "pandas>=2.3.3",
