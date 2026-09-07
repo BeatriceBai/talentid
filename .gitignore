@@ -1,22 +1,17 @@
-# Python-generated files
+# macOS
+.DS_Store
+
+# Python
+.venv/
 __pycache__/
-*.py[oc]
-build/
-dist/
-wheels/
-*.egg-info
+*.py[cod]
 
-# Virtual environments
-.venv
-
-# Downloaded and generated datasets
+# Generated data
 data/raw/**
 data/interim/**
 data/processed/**
 
-# Preserve empty directories
+# Preserve placeholders
 !data/raw/.gitkeep
 !data/interim/.gitkeep
 !data/processed/.gitkeep
-
-.DS_Store
