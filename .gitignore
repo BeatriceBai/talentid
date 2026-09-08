@@ -18,4 +18,4 @@ data/features/
 # Preserve placeholders
 !data/raw/.gitkeep
 !data/interim/.gitkeep
-!data/processed/.gitkeep
+!data/processed/.gitkeepdata/embeddings/

@@ -1,0 +1,12 @@
+[embeddings]
+embedding_version = "talentskill-embeddings-v1"
+model_name = "sentence-transformers/all-MiniLM-L6-v2"
+model_revision = "c9745ed1d9f207416be6d2e6f8de32d1f16199bf"
+batch_size = 64
+device = "auto"
+normalize = true
+
+[text_prefixes]
+candidate = "Candidate {source} evidence: "
+skill = "Skill: "
+
