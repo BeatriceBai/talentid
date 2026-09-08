@@ -19,3 +19,4 @@ data/features/
 !data/raw/.gitkeep
 !data/interim/.gitkeep
 !data/processed/.gitkeepdata/embeddings/
+data/evaluation/

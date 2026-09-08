@@ -1,0 +1,7 @@
+[retrieval]
+evaluation_version = "talentskill-retrieval-v1"
+splits = ["validation"]
+strategies = ["reliability_weighted", "uniform_mean"]
+cutoffs = [10, 30, 100]
+query_batch_size = 256
+
