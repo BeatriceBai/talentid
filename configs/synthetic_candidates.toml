@@ -1,0 +1,24 @@
+[generation]
+n_candidates = 10000
+seed = 20260908
+snapshot_date = "2026-09-01"
+taxonomy_version = "onet-31.0+talentskill-v1"
+
+[splits]
+train = 0.80
+validation = 0.10
+test = 0.10
+
+[missingness]
+resume = 0.08
+projects = 0.22
+job_history = 0.04
+courses = 0.35
+self_reported_skills = 0.12
+
+[quality]
+stale_resume_rate = 0.22
+noisy_claim_rate = 0.12
+max_true_skills = 45
+max_self_reported_skills = 100
+
