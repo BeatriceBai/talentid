@@ -12,6 +12,9 @@ data/interim/**
 data/processed/**
 data/synthetic/
 
+# Pipeline
+data/features/
+
 # Preserve placeholders
 !data/raw/.gitkeep
 !data/interim/.gitkeep

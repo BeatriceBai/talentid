@@ -1,0 +1,13 @@
+[features]
+feature_version = "talentskill-features-v1"
+taxonomy_version = "onet-31.0+talentskill-v1"
+stale_after_days = 730
+high_volume_threshold = 40
+
+[max_characters]
+resume = 6000
+projects = 4000
+job_history = 6000
+courses = 3000
+self_reported_skills = 4000
+
