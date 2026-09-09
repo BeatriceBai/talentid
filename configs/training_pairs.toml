@@ -1,0 +1,14 @@
+[mining]
+mining_version = "talentskill-training-pairs-v1"
+positive_splits = ["train", "validation"]
+negative_split = "train"
+hard_negatives_per_candidate = 30
+random_negatives_per_candidate = 10
+query_batch_size = 256
+seed = 20260908
+
+[positive_weight]
+relevance_weight = 0.70
+proficiency_weight = 0.30
+minimum_weight = 0.10
+
