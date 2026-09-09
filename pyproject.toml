@@ -20,6 +20,9 @@ talentid = "talentid:main"
 embeddings = [
     "sentence-transformers>=5,<7",
 ]
+training = [
+    "torch>=2.3,<3",
+]
 
 [build-system]
 requires = ["uv_build>=0.12.10,<0.13.0"]

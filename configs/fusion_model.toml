@@ -1,0 +1,29 @@
+[model]
+model_version = "talentskill-fusion-v1"
+input_dimension = 384
+output_dimension = 128
+quality_dimension = 6
+gate_hidden_dimension = 32
+dropout = 0.05
+
+[training]
+epochs = 5
+batch_size = 512
+hard_negatives_per_example = 4
+random_negatives_per_example = 4
+learning_rate = 0.0003
+weight_decay = 0.0001
+temperature = 0.07
+gradient_clip_norm = 1.0
+patience = 2
+seed = 20260909
+device = "auto"
+
+[validation]
+cutoff = 30
+query_batch_size = 256
+
+[quality]
+stale_after_days = 730
+volume_scale = 40
+

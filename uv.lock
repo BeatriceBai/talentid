@@ -885,6 +885,9 @@ dependencies = [
 embeddings = [
     { name = "sentence-transformers" },
 ]
+training = [
+    { name = "torch" },
+]
 
 [package.dev-dependencies]
 dev = [
@@ -899,8 +902,9 @@ requires-dist = [
     { name = "pandas", specifier = ">=2.3.3" },
     { name = "pyarrow", specifier = ">=25.0.1" },
     { name = "sentence-transformers", marker = "extra == 'embeddings'", specifier = ">=5,<7" },
+    { name = "torch", marker = "extra == 'training'", specifier = ">=2.3,<3" },
 ]
-provides-extras = ["embeddings"]
+provides-extras = ["embeddings", "training"]
 
 [package.metadata.requires-dev]
 dev = [
