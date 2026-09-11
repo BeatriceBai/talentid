@@ -1,0 +1,12 @@
+[retrieval]
+evaluation_version = "talentskill-learned-retrieval-v1"
+split = "validation"
+cutoffs = [10, 30, 100]
+query_batch_size = 256
+threads = 1
+
+[hnsw]
+m = 32
+ef_construction = 200
+ef_search = 256
+minimum_recall_at_max_k = 0.99
