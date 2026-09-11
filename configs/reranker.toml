@@ -1,0 +1,11 @@
+[reranking]
+reranker_version = "talentskill-reranker-v1"
+split = "validation"
+candidate_pool_size = 100
+output_k = 30
+maximum_ndcg_drop = 0.02
+
+[search]
+evidence_weights = [0.15, 0.30]
+popularity_penalties = [0.05, 0.10]
+diversity_penalties = [0.00, 0.03, 0.06]
