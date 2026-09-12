@@ -1,0 +1,11 @@
+[retrieval]
+retrieval_version = "talentskill-hybrid-retrieval-v1"
+split = "validation"
+learned_k = 100
+pool_size = 200
+tower_k = 200
+occupation_k = 200
+rrf_constant = 60.0
+tower_weight = 0.75
+occupation_weight = 0.65
+evaluation_cutoffs = [30, 100, 200]
