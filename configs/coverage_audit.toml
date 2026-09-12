@@ -1,0 +1,10 @@
+[audit]
+audit_version = "talentskill-coverage-audit-v1"
+split = "validation"
+retrieval_k = 30
+pool_k = 100
+
+[decision]
+minimum_pool_pair_recall = 0.75
+minimum_pool_truth_skill_coverage = 0.80
+minimum_reranked_truth_skill_coverage = 0.50
